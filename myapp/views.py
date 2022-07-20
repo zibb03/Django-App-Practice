@@ -13,11 +13,26 @@ topics = [
     {'id':3, 'title':'Model', 'body':'Model is ..'},
 ]
 
-def HTMLTemplate(articleTag):
+def HTMLTemplate(articleTag, id=None):
     global topics
+    contextUI = ''
+    if id != None:
+        contextUI = f'''
+            <li>
+                <form action="/delete/" method="post">
+                    <input type="hidden" name="id" value="{id}">
+                    <input type="submit" value="delete">
+                </form>
+            </li>
+        '''
     ol = ''
     for topic in topics:
         ol += f'<li><a href="/read/{topic["id"]}">{topic["title"]}</a></li>'
+
+    # 12강
+    # li 태그, 링크는 get 방식
+    # post를 만들어주는 form 태그
+    # <form action="/delete/" method="post"> - delete로 이동하는 속성 추가
     return f'''
     <html>
     <body>
@@ -28,6 +43,7 @@ def HTMLTemplate(articleTag):
         {articleTag}
         <ul>
             <li><a href="/create/">create</a></li>
+            {contextUI}
         </ul>
     </body>
     </html>
@@ -47,7 +63,7 @@ def read(request, id):
     for topic in topics:
         if topic['id'] == int(id):
             article = f'<h2>{topic["title"]}</h2>{topic["body"]}'
-    return HttpResponse(HTMLTemplate(article))
+    return HttpResponse(HTMLTemplate(article, id))
 
 @csrf_exempt
 def create(request):
@@ -73,8 +89,18 @@ def create(request):
         # https://docs.djangoproject.com/en/4.0/topics/http/shortcuts/
         return redirect(url)
 
-
-
+@csrf_exempt
+def delete(request):
+    global topics
+    if request.method == 'POST':
+        id = request.POST['id']
+        newTopics = []
+        for topic in topics:
+            if topic['id'] != int(id):
+                newTopics.append(topic)
+        topics = newTopics
+        # home로 보내는 코드
+        return redirect('/')
 
 
 
