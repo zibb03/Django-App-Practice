@@ -2,7 +2,10 @@ from django.shortcuts import render, HttpResponse, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
+# request로 전달되는 오브젝트 관련 링크
+# https://docs.djangoproject.com/en/4.0/ref/request-response/
 
+# nextid가 4인 이유는 topics가 3까지 있고 그 이후 순서에 맞게 추가하기 위함
 nextId = 4
 topics = [
     {'id':1, 'title':'routing', 'body':'Routing is ..'},
@@ -21,11 +24,15 @@ def HTMLTemplate(articleTag, id=None):
                     <input type="submit" value="delete">
                 </form>
             </li>
-            <li><a href="/update/{id}">update</a></li>
         '''
     ol = ''
     for topic in topics:
         ol += f'<li><a href="/read/{topic["id"]}">{topic["title"]}</a></li>'
+
+    # 12강
+    # li 태그, 링크는 get 방식
+    # post를 만들어주는 form 태그
+    # <form action="/delete/" method="post"> - delete로 이동하는 속성 추가
     return f'''
     <html>
     <body>
@@ -41,6 +48,7 @@ def HTMLTemplate(articleTag, id=None):
     </body>
     </html>
     '''
+# <li> 태그는 페이지에서 리스트로 표시하도록 함
 
 def index(request):
     article = '''
@@ -76,34 +84,10 @@ def create(request):
         topics.append(newTopic)
         url = '/read/' + str(nextId)
         nextId = nextId + 1
-        return redirect(url)
 
-@csrf_exempt
-def update(request,id):
-    global topics
-    if request.method == 'GET':
-        for topic in topics:
-            if topic['id'] == int(id):
-                selectedTopic = {
-                    "title":topic['title'],
-                    "body":topic['body']
-                }
-        article = f'''
-            <form action="/update/{id}/" method="post">
-                <p><input type="text" name="title" placeholder="title" value={selectedTopic["title"]}></p>
-                <p><textarea name="body" placeholder="body">{selectedTopic['body']}</textarea></p>
-                <p><input type="submit"></p>
-            </form>
-        '''
-        return HttpResponse(HTMLTemplate(article, id))
-    elif request.method == 'POST':
-        title = request.POST['title']
-        body = request.POST['body']
-        for topic in topics:
-            if topic['id'] == int(id):
-                topic['title'] = title
-                topic['body'] = body
-        return redirect(f'/read/{id}')
+        # 작성한 정보 관련 링크로 이동하도록 하는 redirect
+        # https://docs.djangoproject.com/en/4.0/topics/http/shortcuts/
+        return redirect(url)
 
 @csrf_exempt
 def delete(request):
@@ -115,4 +99,8 @@ def delete(request):
             if topic['id'] != int(id):
                 newTopics.append(topic)
         topics = newTopics
+        # home로 보내는 코드
         return redirect('/')
+
+
+
