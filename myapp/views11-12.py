@@ -101,6 +101,3 @@ def delete(request):
         topics = newTopics
         # home로 보내는 코드
         return redirect('/')
-
-
-
